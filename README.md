@@ -2,7 +2,7 @@
 
 Roblox piano automation. Drop in a sheet or MIDI file, hit play.
 
-![Piano Player](.github/screenshot.png)
+![Piano Player](/screenshot.png)
 
 ---
 
