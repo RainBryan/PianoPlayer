@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.Python
+.venv/
+venv/
+env/
+
+# PyInstaller build artifacts
+build/__pycache__/
+build/PianoPlayer/
+dist/
+*.spec.bak
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# User data (this is created by the app at runtime in the user's home dir,
+# never inside the repo — but adding here as a safety net)
+PianoPlayer-data/
+
+# OS
+desktop.ini

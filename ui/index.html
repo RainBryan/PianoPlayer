@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Piano Player</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+</head>
+<body>
+
+  <!-- Resize edges for the frameless window -->
+  <div class="resize-edge resize-n"  data-edge="n"></div>
+  <div class="resize-edge resize-s"  data-edge="s"></div>
+  <div class="resize-edge resize-e"  data-edge="e"></div>
+  <div class="resize-edge resize-w"  data-edge="w"></div>
+  <div class="resize-edge resize-ne" data-edge="ne"></div>
+  <div class="resize-edge resize-nw" data-edge="nw"></div>
+  <div class="resize-edge resize-se" data-edge="se"></div>
+  <div class="resize-edge resize-sw" data-edge="sw"></div>
+
+  <!-- ═══════════ TITLE BAR ═══════════ -->
+  <header class="titlebar">
+    <div class="titlebar-drag">
+      <div class="brand">
+        <span class="brand-name">Piano Player</span>
+        <span class="brand-version">v1.0</span>
+      </div>
+    </div>
+    <div class="titlebar-controls">
+      <button class="tb-btn" id="btn-min" title="Minimize" aria-label="Minimize">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor"
+             stroke-width="1.4"><line x1="2" y1="6" x2="10" y2="6"/></svg>
+      </button>
+      <button class="tb-btn tb-close" id="btn-close" title="Close" aria-label="Close">
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor"
+             stroke-width="1.4">
+          <line x1="2" y1="2" x2="10" y2="10"/>
+          <line x1="10" y1="2" x2="2" y2="10"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════ APP SHELL ═══════════ -->
+  <main class="app">
+
+    <!-- ─── Sidebar: library ─── -->
+    <aside class="sidebar">
+      <div class="sb-section sb-search-section">
+        <div class="sb-header">
+          <span class="sb-eyebrow">Library</span>
+          <span class="sb-count" id="lib-count">0</span>
+        </div>
+        <div class="sb-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.5" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="search-input" placeholder="Search songs"/>
+        </div>
+        <div class="sb-filters">
+          <button class="filter-pill active" data-filter="all">All</button>
+          <button class="filter-pill" data-filter="favorites">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.7">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            Favorites
+          </button>
+          <button class="filter-pill" data-filter="sheet">Sheet</button>
+          <button class="filter-pill" data-filter="midi">MIDI</button>
+        </div>
+      </div>
+
+      <div class="sb-section sb-list-section">
+        <div class="song-list" id="song-list" role="listbox"></div>
+      </div>
+
+      <div class="sb-section sb-actions">
+        <button class="btn btn-primary" id="btn-new-song">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.8" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          New Song
+        </button>
+        <button class="btn btn-ghost" id="btn-import-midi">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.6" aria-hidden="true">
+            <path d="M12 3v12m-4-4l4 4 4-4M5 21h14"/>
+          </svg>
+          Import MIDI
+        </button>
+      </div>
+    </aside>
+
+    <!-- ─── Main content ─── -->
+    <section class="content">
+
+      <!-- ═══ Page: PLAY ═══ -->
+      <article class="page page-play active" data-page="play">
+        <header class="page-header">
+          <nav class="tabs">
+            <button class="tab active" data-tab="play">Play</button>
+            <button class="tab" data-tab="edit">Edit</button>
+            <button class="tab" data-tab="queue">Queue</button>
+            <button class="tab" data-tab="guide">Guide</button>
+            <button class="tab" data-tab="settings">Settings</button>
+          </nav>
+          <div class="page-meta">
+            <span class="status-dot" id="status-dot"></span>
+            <span class="status-text" id="status-text">Ready</span>
+          </div>
+        </header>
+
+        <div class="play-body">
+          <div class="now-title">
+            <div class="now-title-row">
+              <h1 class="title-text" id="title-text">No song selected</h1>
+              <button class="fav-big" id="title-fav" title="Favorite this song"
+                      style="display:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="1.7">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="title-meta" id="title-meta">Choose a song from the library</div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="now-stage empty-view show" id="empty-view">
+            <div class="empty-inner">
+              <svg viewBox="0 0 64 64" fill="none" stroke="currentColor"
+                   stroke-width="1.1" aria-hidden="true">
+                <circle cx="32" cy="32" r="22"/>
+                <path d="M26 22v20l16-10z" fill="currentColor" stroke="none"/>
+              </svg>
+              <div class="empty-title">Nothing playing</div>
+              <div class="empty-sub">Pick a song from the library, create a
+                new one, or import a MIDI file to get started.</div>
+            </div>
+          </div>
+
+          <!-- Sheet view: scrolling notation strip -->
+          <div class="now-stage sheet-view" id="sheet-view">
+            <div class="np-strip-host">
+              <div class="np-strip" id="np-strip"></div>
+            </div>
+          </div>
+
+          <!-- MIDI view: scrolling roll -->
+          <div class="now-stage midi-view" id="midi-view">
+            <div class="midi-roll-host">
+              <canvas id="midi-roll" width="900" height="320"></canvas>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ═══ Page: EDIT ═══ -->
+      <article class="page page-edit" data-page="edit">
+        <header class="page-header">
+          <nav class="tabs">
+            <button class="tab" data-tab="play">Play</button>
+            <button class="tab active" data-tab="edit">Edit</button>
+            <button class="tab" data-tab="queue">Queue</button>
+            <button class="tab" data-tab="guide">Guide</button>
+            <button class="tab" data-tab="settings">Settings</button>
+          </nav>
+        </header>
+
+        <!-- Sheet editor -->
+        <div class="scroll-body" id="edit-sheet">
+          <div class="card">
+            <div class="card-title">Song Details</div>
+            <div class="form-row">
+              <label>Name</label>
+              <input type="text" id="ed-name" />
+            </div>
+            <div class="form-row">
+              <label>BPM</label>
+              <input type="number" id="ed-bpm" min="20" max="800" />
+            </div>
+            <div class="form-row form-row-toggle">
+              <div>
+                <label>Musician Notation</label>
+                <p class="form-sub">interpret <code>= ~ . | () :</code>
+                   symbols. OFF means plain notes.</p>
+              </div>
+              <button class="toggle" id="ed-notation"
+                      role="switch" aria-checked="false">
+                <span class="toggle-thumb"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Score</div>
+            <div class="quick-chips">
+              <button class="chip" data-insert="=">hold =</button>
+              <button class="chip" data-insert="~">fermata ~</button>
+              <button class="chip" data-insert=".">staccato .</button>
+              <button class="chip" data-insert=" - ">rest -</button>
+              <button class="chip" data-insert=" | ">bar |</button>
+              <button class="chip" data-insert=" (160) ">tempo</button>
+              <button class="chip" data-insert=" : ">repeat :</button>
+            </div>
+            <textarea id="ed-sheet" class="sheet-textarea" spellcheck="false"
+                      placeholder="Type your sheet here…"></textarea>
+            <div class="sheet-status" id="ed-status">0 notes</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Expression</div>
+            <div class="sliders">
+              <div class="slider-row" data-key="sustain">
+                <label>Note Length</label>
+                <input type="range" min="20" max="200" step="5">
+                <span class="slider-val">×1.00</span>
+              </div>
+              <div class="slider-row" data-key="gap">
+                <label>Note Spacing</label>
+                <input type="range" min="20" max="200" step="5">
+                <span class="slider-val">×1.00</span>
+              </div>
+              <div class="slider-row" data-key="swing">
+                <label>Swing</label>
+                <input type="range" min="0" max="60" step="1">
+                <span class="slider-val">0%</span>
+              </div>
+              <div class="slider-row" data-key="human">
+                <label>Human Feel</label>
+                <input type="range" min="0" max="100" step="1">
+                <span class="slider-val">off</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card action-card">
+            <button class="btn btn-success" id="btn-save">Save Song</button>
+            <button class="btn btn-ghost danger" id="btn-delete-sheet">
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- MIDI editor -->
+        <div class="scroll-body" id="edit-midi" style="display:none">
+          <div class="card midi-info-card">
+            <div class="midi-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3v9.4A4 4 0 1 0 14 16V7h4V3z"/>
+              </svg>
+            </div>
+            <div class="midi-info">
+              <div class="midi-title" id="midi-name">—</div>
+              <div class="midi-file" id="midi-file"></div>
+              <div class="midi-stats" id="midi-stats"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Song Details</div>
+            <div class="form-row">
+              <label>Name</label>
+              <input type="text" id="md-name" />
+            </div>
+            <div class="form-row form-row-slider">
+              <label>Transpose</label>
+              <input type="range" id="md-transpose" min="-24" max="24"
+                     step="1" value="0">
+              <span class="slider-val" id="md-transpose-val">0 st</span>
+            </div>
+            <p class="form-hint">MIDI songs play with their original timing —
+              expression sliders and BPM don't apply. The transpose shifts
+              every note up or down in semitones so the song fits the Roblox
+              piano's range.</p>
+          </div>
+
+          <div class="card action-card">
+            <button class="btn btn-success" id="btn-save-midi">Save</button>
+            <button class="btn btn-ghost danger" id="btn-delete-midi">
+              Delete
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- ═══ Page: QUEUE ═══ -->
+      <article class="page page-queue" data-page="queue">
+        <header class="page-header">
+          <nav class="tabs">
+            <button class="tab" data-tab="play">Play</button>
+            <button class="tab" data-tab="edit">Edit</button>
+            <button class="tab active" data-tab="queue">Queue</button>
+            <button class="tab" data-tab="guide">Guide</button>
+            <button class="tab" data-tab="settings">Settings</button>
+          </nav>
+        </header>
+
+        <div class="scroll-body">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title-2">Autoplay Queue</div>
+                <p class="form-hint" style="margin:4px 0 0">
+                  Add songs in the order you want them played. Hit
+                  <strong>Start Queue</strong> and they'll play one after
+                  another with a small gap between each.</p>
+              </div>
+              <div class="card-head-actions">
+                <button class="btn btn-success" id="btn-queue-start">
+                  <svg viewBox="0 0 24 24" fill="currentColor"
+                       style="width:14px;height:14px">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                  Start Queue
+                </button>
+                <button class="btn btn-ghost" id="btn-queue-clear">Clear</button>
+              </div>
+            </div>
+
+            <div class="queue-gap-row">
+              <label>Gap between songs</label>
+              <div class="stepper">
+                <button class="step-btn" id="gap-minus">−</button>
+                <span class="step-val" id="gap-val">2s</span>
+                <button class="step-btn" id="gap-plus">+</button>
+              </div>
+            </div>
+
+            <div class="queue-list" id="queue-list">
+              <div class="queue-empty" id="queue-empty">
+                Queue is empty. Browse the library and click the
+                <span class="queue-empty-icon">+</span> button on any song
+                to add it.
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Add Songs</div>
+            <p class="form-hint">Click <strong>+</strong> to add a song to
+              the queue. Click again to remove.</p>
+            <div class="queue-picker" id="queue-picker"></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ═══ Page: GUIDE ═══ -->
+      <article class="page page-guide" data-page="guide">
+        <header class="page-header">
+          <nav class="tabs">
+            <button class="tab" data-tab="play">Play</button>
+            <button class="tab" data-tab="edit">Edit</button>
+            <button class="tab" data-tab="queue">Queue</button>
+            <button class="tab active" data-tab="guide">Guide</button>
+            <button class="tab" data-tab="settings">Settings</button>
+          </nav>
+        </header>
+
+        <div class="scroll-body">
+          <div class="card">
+            <div class="card-title">Sheet Notation</div>
+            <p class="form-hint">By default, every character in a sheet is
+              a literal key to press. Turn on <strong>Musician Notation</strong>
+              in the Edit tab to use these symbols:</p>
+            <table class="notation-table">
+              <thead>
+                <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>c d e</code></td>
+                    <td>Single notes, played in sequence</td>
+                    <td><code>c d e f g</code></td></tr>
+                <tr><td><code>[ec]</code></td>
+                    <td>Chord — keys pressed together</td>
+                    <td><code>[ceg]</code></td></tr>
+                <tr><td><code>-</code></td>
+                    <td>Rest (silence) — one beat per dash</td>
+                    <td><code>c - d --- e</code></td></tr>
+                <tr><td><code>c=</code></td>
+                    <td>Hold — c rings under next notes</td>
+                    <td><code>c== d e f</code></td></tr>
+                <tr><td><code>c~</code></td>
+                    <td>Fermata — freezes song while c is held</td>
+                    <td><code>c d e~~ f</code></td></tr>
+                <tr><td><code>c.</code></td>
+                    <td>Staccato — very short press</td>
+                    <td><code>c. d. e. f.</code></td></tr>
+                <tr><td><code>(160)</code></td>
+                    <td>Tempo change mid-song</td>
+                    <td><code>c d (240) e f</code></td></tr>
+                <tr><td><code>|</code></td>
+                    <td>Bar line (visual only)</td>
+                    <td><code>c d e f | g a b c</code></td></tr>
+                <tr><td><code>: :x3</code></td>
+                    <td>Repeat section 3 times</td>
+                    <td><code>: c d e f :x3</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Hotkeys</div>
+            <div class="hotkey-grid">
+              <div class="hotkey"><kbd>F6</kbd> Start playback</div>
+              <div class="hotkey"><kbd>F7</kbd> Pause / Resume</div>
+              <div class="hotkey"><kbd>F8</kbd> Stop</div>
+            </div>
+            <p class="form-hint" style="margin-top:1em">
+              Hotkeys work globally — they fire even when Roblox is focused.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <!-- ═══ Page: SETTINGS ═══ -->
+      <article class="page page-settings" data-page="settings">
+        <header class="page-header">
+          <nav class="tabs">
+            <button class="tab" data-tab="play">Play</button>
+            <button class="tab" data-tab="edit">Edit</button>
+            <button class="tab" data-tab="queue">Queue</button>
+            <button class="tab" data-tab="guide">Guide</button>
+            <button class="tab active" data-tab="settings">Settings</button>
+          </nav>
+        </header>
+
+        <div class="scroll-body">
+          <div class="card">
+            <div class="card-title">Appearance</div>
+            <div class="form-row form-row-toggle">
+              <div>
+                <label>Theme</label>
+                <p class="form-sub"><strong>System</strong> follows your OS
+                  light/dark setting. Override here to lock either mode.</p>
+              </div>
+              <div class="segmented" id="theme-segmented">
+                <button class="seg" data-theme-mode="system">System</button>
+                <button class="seg" data-theme-mode="dark">Dark</button>
+                <button class="seg" data-theme-mode="light">Light</button>
+              </div>
+            </div>
+
+            <div class="setting-section">
+              <label class="setting-section-label">Color Theme</label>
+              <p class="form-sub">choose an accent color for the interface</p>
+              <div class="theme-grid" id="theme-grid">
+                <button class="theme-card" data-theme-preset="blue">
+                  <span class="tc-swatch" style="background:#4a9eff"></span>
+                  <span class="tc-name">Blue</span>
+                </button>
+                <button class="theme-card" data-theme-preset="green">
+                  <span class="tc-swatch" style="background:#22c55e"></span>
+                  <span class="tc-name">Green</span>
+                </button>
+                <button class="theme-card" data-theme-preset="red">
+                  <span class="tc-swatch" style="background:#ef4444"></span>
+                  <span class="tc-name">Red</span>
+                </button>
+                <button class="theme-card" data-theme-preset="pink">
+                  <span class="tc-swatch" style="background:#ec4899"></span>
+                  <span class="tc-name">Pink</span>
+                </button>
+                <button class="theme-card theme-card-custom"
+                        data-theme-preset="custom">
+                  <span class="tc-swatch tc-swatch-custom" id="tc-custom-swatch">
+                    <svg viewBox="0 0 16 16" fill="currentColor"
+                         aria-hidden="true">
+                      <path d="M8 1a7 7 0 1 0 0 14 1.5 1.5 0 0 0 1.06-2.56.74.74 0 0 1 .53-1.27H11A4 4 0 0 0 15 7.2 7 7 0 0 0 8 1zm-3.5 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM7 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm.5 3.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                    </svg>
+                  </span>
+                  <span class="tc-name">Custom</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Custom color picker (only shown when Custom is selected) -->
+            <div class="setting-section" id="custom-accent-section"
+                 style="display:none">
+              <label class="setting-section-label">Custom Accent</label>
+              <p class="form-sub">pick any color for your custom theme</p>
+              <div class="accent-row">
+                <input type="color" id="accent-picker" value="#4a9eff">
+                <span class="accent-hex" id="accent-hex">#4A9EFF</span>
+                <button class="btn btn-ghost" id="accent-reset">Reset to Blue</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Playback</div>
+            <div class="form-row">
+              <label>Countdown</label>
+              <div class="stepper">
+                <button class="step-btn" id="cd-minus">−</button>
+                <span class="step-val" id="cd-val">3s</span>
+                <button class="step-btn" id="cd-plus">+</button>
+              </div>
+              <span class="form-sub" style="margin-left:14px">
+                seconds before playback starts
+              </span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Storage</div>
+            <p class="form-hint">Songs and settings are saved locally.</p>
+            <div class="path-box" id="path-data"></div>
+            <p class="form-hint">Imported MIDI files live here:</p>
+            <div class="path-box" id="path-midi"></div>
+            <div class="action-row">
+              <button class="btn btn-ghost" id="btn-open-data">
+                Open data folder
+              </button>
+              <button class="btn btn-ghost" id="btn-open-midi">
+                Open MIDI folder
+              </button>
+            </div>
+          </div>
+
+          <div class="card about-card">
+            <div class="about-head">
+              <img class="about-logo" src="rain-logo.png" alt="RAIN logo"
+                   draggable="false">
+              <div class="about-head-meta">
+                <div class="about-name">Piano Player</div>
+                <div class="about-version" id="about-version">v1.0.0</div>
+              </div>
+            </div>
+
+            <p class="about-description">
+              I made this to play Roblox piano sheets and MIDI files without
+              having to learn the keyboard layout. Drop in a song, hit play.
+            </p>
+
+            <div class="about-links">
+              <a class="about-link" href="#" data-url="https://rainbryan.com">
+                <div class="about-link-body">
+                  <div class="about-link-label">Website</div>
+                  <div class="about-link-value">rainbryan.com</div>
+                </div>
+              </a>
+              <a class="about-link" href="#"
+                 data-url="https://www.roblox.com/users/559231096/profile">
+                <div class="about-link-body">
+                  <div class="about-link-label">Roblox</div>
+                  <div class="about-link-value">@RainBryan192</div>
+                </div>
+              </a>
+              <a class="about-link" href="#"
+                 data-url="https://github.com/RainBryan/PianoPlayer">
+                <div class="about-link-body">
+                  <div class="about-link-label">GitHub</div>
+                  <div class="about-link-value">RainBryan/PianoPlayer</div>
+                </div>
+              </a>
+            </div>
+
+            <!-- Update status block -->
+            <div class="about-update" id="about-update">
+              <div class="update-status" id="update-status">
+                <span class="update-dot" id="update-dot"></span>
+                <span class="update-text" id="update-text">
+                  Checking for updates…
+                </span>
+              </div>
+              <div class="update-actions" id="update-actions"
+                   style="display:none">
+                <button class="btn btn-primary" id="btn-update-download"
+                        style="display:none">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="1.7" aria-hidden="true">
+                    <path d="M12 3v12m-4-4l4 4 4-4M5 21h14"/>
+                  </svg>
+                  Download Update
+                </button>
+                <button class="btn btn-ghost" id="btn-update-check">
+                  Check Again
+                </button>
+              </div>
+            </div>
+
+            <p class="form-hint about-tagline">
+              A TOS-safe Roblox piano helper. Uses only standard keyboard
+              input — equivalent to a macro keyboard.
+            </p>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <!-- ═══════════ BOTTOM TRANSPORT BAR ═══════════ -->
+  <div class="bottom-bar" id="bottom-bar">
+    <div class="bb-info">
+      <div class="bb-art" id="bb-art">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.5" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M9 8v8l7-4z" fill="currentColor" stroke="none"/>
+        </svg>
+      </div>
+      <div class="bb-meta">
+        <div class="bb-title" id="bb-title">No song selected</div>
+        <div class="bb-sub" id="bb-sub">—</div>
+      </div>
+    </div>
+
+    <div class="bb-center">
+      <div class="bb-controls">
+        <button class="bb-btn" id="btn-stop" title="Stop (F8)">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="6" width="12" height="12" rx="1.5"/>
+          </svg>
+        </button>
+        <button class="bb-btn bb-play" id="btn-play" title="Play (F6)">
+          <svg id="bb-play-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <svg id="bb-pause-icon" viewBox="0 0 24 24" fill="currentColor"
+               style="display:none">
+            <rect x="6" y="5" width="4" height="14" rx="1"/>
+            <rect x="14" y="5" width="4" height="14" rx="1"/>
+          </svg>
+        </button>
+        <button class="bb-btn" id="btn-next" title="Next in queue"
+                style="display:none">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 5l9 7-9 7zM17 5h2v14h-2z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="bb-progress">
+        <span class="bb-time" id="elapsed">0:00</span>
+        <div class="bb-bar"><div class="bb-fill" id="progress-fill"></div></div>
+        <span class="bb-time" id="duration">0:00</span>
+      </div>
+    </div>
+
+    <div class="bb-right">
+      <span class="bb-stats">
+        <strong id="played-count">0</strong>
+        <span class="bb-stats-divider">/</span>
+        <span id="total-count">0</span>
+        <span class="bb-stats-label">notes</span>
+      </span>
+      <span class="bb-countdown" id="countdown-label"></span>
+    </div>
+  </div>
+
+  <!-- Countdown overlay -->
+  <div class="countdown-overlay" id="countdown-overlay">
+    <div class="countdown-number" id="countdown-number">3</div>
+    <div class="countdown-hint">switch to Roblox now</div>
+  </div>
+
+  <!-- Custom confirm/alert dialog (replaces native browser popups) -->
+  <div class="modal" id="dialog">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card dialog-card">
+      <div class="dialog-icon" id="dialog-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="13"/>
+          <circle cx="12" cy="16.5" r=".8" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="dialog-body">
+        <div class="dialog-title" id="dialog-title">Are you sure?</div>
+        <div class="dialog-message" id="dialog-message"></div>
+      </div>
+      <div class="dialog-actions" id="dialog-actions">
+        <button class="btn btn-ghost" id="dialog-cancel">Cancel</button>
+        <button class="btn btn-primary" id="dialog-confirm">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIDI import modal -->
+  <div class="modal" id="midi-modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card">
+      <div class="modal-head">
+        <span>Import MIDI</span>
+        <button class="modal-close" id="mm-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="mm-file">
+          <div class="mm-file-icon">♬</div>
+          <div class="mm-file-info">
+            <div class="mm-file-name" id="mm-name">No file selected</div>
+            <div class="mm-file-stats" id="mm-stats">—</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Song name</label>
+          <input type="text" id="mm-songname" placeholder="Song title">
+        </div>
+        <div class="form-row form-row-slider">
+          <label>Transpose</label>
+          <input type="range" id="mm-transpose" min="-24" max="24"
+                 step="1" value="0">
+          <span class="slider-val" id="mm-transpose-val">0 st</span>
+        </div>
+        <p class="form-hint">Transpose shifts every note by a number of
+          semitones. Use it to fit the MIDI into the Roblox piano's range.
+          Auto-set on import.</p>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" id="mm-cancel">Cancel</button>
+        <button class="btn btn-primary" id="mm-confirm">Import as MIDI</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
