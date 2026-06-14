@@ -76,7 +76,7 @@ Produces `dist/PianoPlayer.exe` (~30 MB, single file).
 
 For any other bugs, errors, or issues, please report them to me via Discord or GitHub.
 
-## Thank you for your support!
+Thank you for your support!
 
 ---
 
