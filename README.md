@@ -68,9 +68,22 @@ Produces `dist/PianoPlayer.exe` (~30 MB, single file).
 
 ---
 
+## Known Bugs/Errors/Issues
+
+- `PianoPlayer.exe` Gets flagged as a virus 
+- Pausing then stopping a song breaks the resume function
+- Pausing a MIDI song and then resuming will halt the piano display
+
+For any other bugs, errors, or issues, please report them to me via Discord or GitHub.
+
+## Thank you for your support!
+
+---
+
 ## Credits
 
 Made by **[RainBryan](https://rainbryan.com)** · [@RainBryan192](https://www.roblox.com/users/559231096/profile) on Roblox
+Made using Claude AI
 
 ## License
 
